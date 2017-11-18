@@ -16,36 +16,31 @@ The data you will be using comes from the Assistments online intelligent tutorin
 
 ## Start by uploading the data
 ```{r}
-D1 <- 
-
-  #We won't need the id variable, so remove that.
-
-
+D1 <- read.csv('D:/HUDK 4050 Core Mthds Educ Data Mining_Lang/assignments/assignment4-jesin951/Assistments-confidence.csv', header=T)
+D1 = D1[,-1]
+#We won't need the id variable, so remove that.
 ```
 
 ## Create a correlation matrix of the relationships between the variables, including correlation coefficients for each pair of variables/features.
 
 ```{r}
 #You can install the corrplot package to plot some pretty correlation matrices (sometimes called correlograms)
-
+# install.packages('corrplot')
 library(corrplot)
 
 #Generate pairwise correlations
 COR <- cor(D1)
-
 corrplot(COR, order="AOE", method="circle", tl.pos="lt", type="upper",        
-tl.col="black", tl.cex=0.6, tl.srt=45, 
+        tl.col="black", tl.cex=0.6, tl.srt=45, 
         addCoef.col="black", addCoefasPercent = TRUE,
         sig.level=0.50, insig = "blank")
-
 #Study your correlogram image and save it, you will need it later
 ```
 
 ## Create a new data frame with the mean_correct variables removed
 
 ```{r}
-D2 <- 
-
+D2 <- D1[,-4]
 #The, scale and center your data for easier interpretation
 D2 <- scale(D2, center = TRUE)
 ```
@@ -62,15 +57,12 @@ pca <- prcomp(D2, scale = TRUE)
 pca$sdev
 
 #To convert this into variance accounted for we can square it, these numbers are proportional to the eigenvalue
-
 pca$sdev^2
 
 #A summary of our pca will give us the proportion of variance accounted for by each component
-
 summary(pca)
 
 #We can look at this to get an idea of which components we should keep and which we should drop
-
 plot(pca, type = "lines")
 ```
 
@@ -80,37 +72,76 @@ plot(pca, type = "lines")
 
 ```{r}
 #Now, create a data frame of the transformed data from your pca.
-
 D3 <- as.data.frame(pca$x)
+D3 = D3[,1:4]
 
 #Attach the variable "mean_correct" from your original data frame to D3.
-
 D4 <- cbind(D3, as.data.frame(D1$mean_correct))
 
 #Now re-run your scatterplots and correlations between the transformed data and mean_correct. If you had dropped some components would you have lost important infomation about mean_correct?
+COR2 <- cor(D4)
+corrplot(COR2, order="AOE", method="circle", tl.pos="lt", type="upper",        
+        tl.col="black", tl.cex=0.6, tl.srt=45, 
+        addCoef.col="black", addCoefasPercent = TRUE,
+        sig.level=0.50, insig = "blank")
 
-COR2 <- 
-
+# Answer: With two minor components dropped, most information has been kept. The correlations between the kept components and mean correctness are not obviously smaller than those between mean correctness and the original six variables.
 ```
+
 ## Now print out the eigenvectors (often called loadings) for the components you generated:
 
 ```{r}
 pca$rotation
 
 #Examine the eigenvectors, notice that they are a little difficult to interpret. It is much easier to make sense of them if we make them proportional within each component
-
 loadings <- abs(pca$rotation) #abs() will make all eigenvectors positive
-
 sweep(loadings, 2, colSums(loadings), "/") #sweep() computes each row as a proportion of the column. (There must be a way to do this with dplyr()?)
 
 #Now examine your components and try to come up with substantive descriptions of what some might represent?
+# Answer: Component 1 can be interpreted as "problem solving", Compnenet 2 as "prior knowledge", and Component 3 as "Confidence". Other components seem not to have a reasonable interpretation.
 
 #You can generate a biplot to help you, though these can be a bit confusing. They plot the transformed data by the first two components. Therefore, the axes represent the direction of maximum variance. Then mapped onto this point cloud are the original directions of the variables, depicted as red arrows. It is supposed to provide a visualization of which variables "go together". Variables that possibly represent the same underlying construct point in the same direction.  
-
 biplot(pca)
 
 #Calculate values for each student that represent these your composite variables and then create a new correlogram showing their relationship to mean_correct.
-
+COR3 <- cor(?) #don't quite understand the meaning of the question
+corrplot(COR3, order="AOE", method="circle", tl.pos="lt", type="upper",        
+        tl.col="black", tl.cex=0.6, tl.srt=45, 
+        addCoef.col="black", addCoefasPercent = TRUE,
+        sig.level=0.50, insig = "blank")
 ```
 # Part III  
 ## Also in this repository is a data set and codebook from Rod Martin, Patricia Puhlik-Doris, Gwen Larsen, Jeanette Gray, Kelly Weir at the University of Western Ontario about people's sense of humor. Can you perform a PCA on this data?
+
+```{r}
+#import data
+D1 = read.csv('D:/HUDK 4050 Core Mthds Educ Data Mining_Lang/assignments/assignment4-jesin951/humor_data.csv', header=T)
+
+#check correlation
+COR <- cor(D1)
+corrplot(COR, order="AOE", method="circle", tl.pos="lt", type="upper",        
+        tl.col="black", tl.cex=0.6, tl.srt=45, 
+        addCoef.col="black", addCoefasPercent = TRUE,
+        sig.level=0.50, insig = "blank")
+
+#do pca
+D2 <- princomp(D1)
+D2 <- scale(D1, center = TRUE)
+pca <- prcomp(D2, scale = TRUE)
+
+#determine no. of pc
+pca$sdev
+pca$sdev^2
+summary(pca)
+plot(pca, type = "lines")
+D3 <- as.data.frame(pca$x)
+D3 = D3[,1:5]
+
+#show loadings for variables
+pca$rotation
+loadings <- abs(pca$rotation)
+sweep(loadings, 2, colSums(loadings), "/") 
+
+#visualize pc's in 2D
+biplot(pca)
+```
